@@ -1,0 +1,13 @@
+# EPH cache (descarga grande)
+eph_cache_full.rds
+
+# Datos procesados
+datos_procesados.rds
+
+# Resultados
+resultados/
+
+# R
+.Rhistory
+.RData
+.Rproj.user
