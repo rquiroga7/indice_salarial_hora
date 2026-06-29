@@ -475,6 +475,15 @@ cat("Generando gráficos ...\n")
 
 fecha_actualizacion <- Sys.Date()
 
+nota_metodologica <- paste0(
+  "EPH: sal/hora = ingreso total (P21+TOT_P12) / horas totales (PP3E_TOT+PP3F_TOT) × 4.33. ",
+  "Winsorización sal/hora en p98 (se descarta 2% superior). ",
+  "INDEC: Índice de Salarios (empleo principal registrado). ",
+  "INDEC No Registrado desplazado 2 trim. por rezago. ",
+  "Horas: media móvil 3 trim. (trailing). ",
+  "Repositorio: github.com/rquiroga7/indice_salarial_hora") |>
+  stringr::str_wrap(width = 120)
+
 # Constantes para todos los gráficos base 100
 base_breaks <- function(x) {
  下限 <- floor(min(x, na.rm = TRUE) / 10) * 10
@@ -546,7 +555,7 @@ p1 <- df_12a %>%
   labs(title    = "Índice Salarial Real por Hora — EPH (Base 100 = 2023 Q3)",
        subtitle = "EPH sin corregir. Sectores: registrado privado, público, no registrado y cuenta propia",
        x = NULL, y = "Índice (base 100)", color = NULL,
-       caption = paste0("Fuentes: EPH-INDEC, IPC. ", fecha_actualizacion)) +
+       caption = nota_metodologica) +
   theme_minimal() + theme(legend.position = "bottom")
 
 for (s in names(pal_sectores5)) {
@@ -557,7 +566,7 @@ for (s in names(pal_sectores5)) {
                          color = pal_sectores5[s], size = 3, hjust = 0, vjust = -0.5)
   }
 }
-ggsave("resultados/indice_salarial_hora_sectores.png", p1, width = 11, height = 6, dpi = 150)
+ggsave("resultados/indice_salarial_hora_sectores.png", p1, width = 10, height = 7.5, dpi = 150)
 
 prepare_indec_data <- function(data, eph_prefix) {
   eph_priv <- paste0(eph_prefix, "Privado_Formal")
@@ -597,8 +606,7 @@ format_indec_plot <- function(df, title, subtitle) {
     scale_y_continuous(labels = comma_format(), expand = expansion(mult = c(y_expand_bottom, 0.05))) +
     labs(title = title, subtitle = subtitle,
          x = NULL, y = "Índice (base 100)", color = NULL, linetype = "Fuente",
-         caption = paste0("Fuentes: EPH-INDEC, IPC e Índice de Salarios (INDEC). ",
-                          fecha_actualizacion)) +
+          caption = nota_metodologica) +
     guides(linetype = guide_legend(override.aes = list(linewidth = 1.2))) +
     theme_minimal() + theme(legend.position = "bottom")
 }
@@ -622,14 +630,14 @@ p_eph_only <- df_eph %>%
   labs(title    = "Índice Salarial Real por Hora — EPH (sin corregir)",
        subtitle = "Base 100 = 2023 Q3",
        x = NULL, y = "Índice (base 100)", color = NULL,
-       caption = paste0("Fuentes: EPH-INDEC, IPC. ", fecha_actualizacion)) +
+       caption = nota_metodologica) +
   theme_minimal() + theme(legend.position = "bottom")
 
 for (s in names(pal3)) {
   l <- df_eph %>% filter(sector == s, !is.na(indice)) %>% tail(1)
   if (nrow(l) > 0) p_eph_only <- p_eph_only + geom_label(data = l, aes(x = x + 0.1, y = indice, label = round(indice, 1)), color = pal3[s], fill = "white", linewidth = 0.5, fontface = "bold", size = 3, hjust = 0, vjust = -0.5)
 }
-ggsave("resultados/indice_salarial_hora_eph.png", p_eph_only, width = 11, height = 6, dpi = 150)
+ggsave("resultados/indice_salarial_hora_eph.png", p_eph_only, width = 10, height = 7.5, dpi = 150)
 
 # 12b-nom. EPH nominal (sin deflactar)
 df_eph_nom <- eph_idx %>%
@@ -650,14 +658,14 @@ p_eph_nom <- df_eph_nom %>%
   labs(title    = "Índice Salarial Nominal por Hora — EPH (sin corregir)",
        subtitle = "Sin deflactar. Base 100 = 2023 Q3",
        x = NULL, y = "Índice nominal (base 100)", color = NULL,
-       caption = paste0("Fuentes: EPH-INDEC. ", fecha_actualizacion)) +
+       caption = nota_metodologica) +
   theme_minimal() + theme(legend.position = "bottom")
 
 for (s in names(pal3)) {
   l <- df_eph_nom %>% filter(sector == s, !is.na(indice)) %>% tail(1)
   if (nrow(l) > 0) p_eph_nom <- p_eph_nom + geom_label(data = l, aes(x = x + 0.1, y = indice, label = round(indice, 1)), color = pal3[s], fill = "white", linewidth = 0.5, fontface = "bold", size = 3, hjust = 0, vjust = -0.5)
 }
-ggsave("resultados/indice_salarial_hora_eph_nominal.png", p_eph_nom, width = 11, height = 6, dpi = 150)
+ggsave("resultados/indice_salarial_hora_eph_nominal.png", p_eph_nom, width = 10, height = 7.5, dpi = 150)
 
 # 12c. INDEC solo — tres sectores (Índice de Salarios INDEC)
 df_indec <- eph_idx %>%
@@ -678,14 +686,14 @@ p_indec_only <- df_indec %>%
   labs(title    = "Índice Salarial Real (Mensual) — Índice de Salarios INDEC",
        subtitle = "Deflactado por IPC. Base 100 = 2023 Q3. Últimos dos trimestres censurados (rezago de publicación).",
        x = NULL, y = "Índice (base 100)", color = NULL,
-       caption = paste0("Fuentes: Índice de Salarios (INDEC), IPC. ", fecha_actualizacion)) +
+       caption = nota_metodologica) +
   theme_minimal() + theme(legend.position = "bottom")
 
 for (s in names(pal3)) {
   l <- df_indec %>% filter(sector == s, !is.na(indice)) %>% tail(1)
   if (nrow(l) > 0) p_indec_only <- p_indec_only + geom_label(data = l, aes(x = x + 0.1, y = indice, label = round(indice, 1)), color = pal3[s], fill = "white", linewidth = 0.5, fontface = "bold", size = 3, hjust = 0, vjust = -0.5)
 }
-ggsave("resultados/indice_salarial_hora_indec.png", p_indec_only, width = 11, height = 6, dpi = 150)
+ggsave("resultados/indice_salarial_hora_indec.png", p_indec_only, width = 10, height = 7.5, dpi = 150)
 
 # 12c-nom. INDEC nominal (sin deflactar)
 df_indec_nom <- eph_idx %>%
@@ -706,14 +714,14 @@ p_indec_nom <- df_indec_nom %>%
   labs(title    = "Índice Salarial Nominal (Mensual) — Índice de Salarios INDEC",
        subtitle = "Sin deflactar. Base 100 = 2023 Q3",
        x = NULL, y = "Índice nominal (base 100)", color = NULL,
-       caption = paste0("Fuentes: Índice de Salarios (INDEC). ", fecha_actualizacion)) +
+       caption = nota_metodologica) +
   theme_minimal() + theme(legend.position = "bottom")
 
 for (s in names(pal3)) {
   l <- df_indec_nom %>% filter(sector == s, !is.na(indice)) %>% tail(1)
   if (nrow(l) > 0) p_indec_nom <- p_indec_nom + geom_label(data = l, aes(x = x + 0.1, y = indice, label = round(indice, 1)), color = pal3[s], fill = "white", linewidth = 0.5, fontface = "bold", size = 3, hjust = 0, vjust = -0.5)
 }
-ggsave("resultados/indice_salarial_hora_indec_nominal.png", p_indec_nom, width = 11, height = 6, dpi = 150)
+ggsave("resultados/indice_salarial_hora_indec_nominal.png", p_indec_nom, width = 10, height = 7.5, dpi = 150)
 
 # 12d. Comparación EPH vs INDEC por categoría — un plot por cada una
 plot_cat_compare <- function(cat, eph_col, indec_col, col_eph = "#1f77b4", col_indec = "#ff7f0e") {
@@ -734,7 +742,7 @@ plot_cat_compare <- function(cat, eph_col, indec_col, col_eph = "#1f77b4", col_i
     labs(title    = paste(cat, "— EPH (por hora) vs. Índice de Salarios INDEC (mensual)"),
          subtitle = "Ambos deflactados por IPC. Base 100 = 2023 Q3",
          x = NULL, y = "Índice (base 100)", color = NULL, linetype = NULL,
-         caption = paste0("Fuentes: EPH-INDEC, Índice de Salarios (INDEC). ", fecha_actualizacion)) +
+         caption = nota_metodologica) +
     guides(linetype = guide_legend(override.aes = list(linewidth = 1.2))) +
     theme_minimal() + theme(legend.position = "bottom")
 
@@ -747,13 +755,13 @@ plot_cat_compare <- function(cat, eph_col, indec_col, col_eph = "#1f77b4", col_i
 }
 
 p_reg_priv <- plot_cat_compare("Reg. Privado", "idx_hora_Privado_Formal", "idx_is_reg_priv", col_eph = "#1f77b4", col_indec = "#1f77b4")
-ggsave("resultados/comparacion_reg_privado.png", p_reg_priv, width = 11, height = 6, dpi = 150)
+ggsave("resultados/comparacion_reg_privado.png", p_reg_priv, width = 10, height = 7.5, dpi = 150)
 
 p_reg_pub <- plot_cat_compare("Reg. Público", "idx_hora_Publico_Formal", "idx_is_reg_pub", col_eph = "#2ca02c", col_indec = "#2ca02c")
-ggsave("resultados/comparacion_reg_publico.png", p_reg_pub, width = 11, height = 6, dpi = 150)
+ggsave("resultados/comparacion_reg_publico.png", p_reg_pub, width = 10, height = 7.5, dpi = 150)
 
 p_no_reg <- plot_cat_compare("No Registrado", "idx_hora_Informal_trunc", "idx_is_noreg_priv", col_eph = "#ff7f0e", col_indec = "#ff7f0e")
-ggsave("resultados/comparacion_no_registrado.png", p_no_reg, width = 11, height = 6, dpi = 150)
+ggsave("resultados/comparacion_no_registrado.png", p_no_reg, width = 10, height = 7.5, dpi = 150)
 
 # 12d-nom. Comparación nominal (sin deflactar)
 plot_cat_compare_nom <- function(cat, eph_col, indec_col, col_eph = "#1f77b4", col_indec = "#ff7f0e") {
@@ -774,7 +782,7 @@ plot_cat_compare_nom <- function(cat, eph_col, indec_col, col_eph = "#1f77b4", c
     labs(title    = paste(cat, "— EPH vs. INDEC (nominal, sin deflactar)"),
          subtitle = "Base 100 = 2023 Q3",
          x = NULL, y = "Índice nominal (base 100)", color = NULL, linetype = NULL,
-         caption = paste0("Fuentes: EPH-INDEC, Índice de Salarios (INDEC). ", fecha_actualizacion)) +
+         caption = nota_metodologica) +
     guides(linetype = guide_legend(override.aes = list(linewidth = 1.2))) +
     theme_minimal() + theme(legend.position = "bottom")
 
@@ -787,13 +795,13 @@ plot_cat_compare_nom <- function(cat, eph_col, indec_col, col_eph = "#1f77b4", c
 }
 
 p_reg_priv_nom <- plot_cat_compare_nom("Reg. Privado", "idx_hora_nom_Privado_Formal", "idx_is_reg_priv_nom", col_eph = "#1f77b4", col_indec = "#1f77b4")
-ggsave("resultados/comparacion_reg_privado_nominal.png", p_reg_priv_nom, width = 11, height = 6, dpi = 150)
+ggsave("resultados/comparacion_reg_privado_nominal.png", p_reg_priv_nom, width = 10, height = 7.5, dpi = 150)
 
 p_reg_pub_nom <- plot_cat_compare_nom("Reg. Público", "idx_hora_nom_Publico_Formal", "idx_is_reg_pub_nom", col_eph = "#2ca02c", col_indec = "#2ca02c")
-ggsave("resultados/comparacion_reg_publico_nominal.png", p_reg_pub_nom, width = 11, height = 6, dpi = 150)
+ggsave("resultados/comparacion_reg_publico_nominal.png", p_reg_pub_nom, width = 10, height = 7.5, dpi = 150)
 
 p_no_reg_nom <- plot_cat_compare_nom("No Registrado", "idx_hora_nom_Informal_trunc", "idx_is_noreg_priv_nom", col_eph = "#ff7f0e", col_indec = "#ff7f0e")
-ggsave("resultados/comparacion_no_registrado_nominal.png", p_no_reg_nom, width = 11, height = 6, dpi = 150)
+ggsave("resultados/comparacion_no_registrado_nominal.png", p_no_reg_nom, width = 10, height = 7.5, dpi = 150)
 
 # 12d-int. Variación interanual — EPH e INDEC por sector
 interanual <- eph_idx %>%
@@ -836,7 +844,7 @@ make_interanual_plot <- function(cat, color_e = "#1f77b4", color_i = "#ff7f0e") 
     labs(title    = paste("Variación Interanual —", cat),
          subtitle = "Mismo trimestre del año anterior. Var. % real (deflactado por IPC)",
          x = NULL, y = "Var. % interanual", color = NULL, linetype = NULL,
-         caption = paste0("Fuentes: EPH-INDEC, Índice de Salarios (INDEC). ", fecha_actualizacion)) +
+         caption = nota_metodologica) +
     guides(linetype = guide_legend(override.aes = list(linewidth = 1.2))) +
     theme_minimal() + theme(legend.position = "bottom")
   
@@ -849,13 +857,13 @@ make_interanual_plot <- function(cat, color_e = "#1f77b4", color_i = "#ff7f0e") 
 }
 
 p_int_priv <- make_interanual_plot("Reg. Privado", "#1f77b4", "#1f77b4")
-ggsave("resultados/var_interanual_reg_privado.png", p_int_priv, width = 11, height = 6, dpi = 150)
+ggsave("resultados/var_interanual_reg_privado.png", p_int_priv, width = 10, height = 7.5, dpi = 150)
 
 p_int_pub <- make_interanual_plot("Reg. Público", "#2ca02c", "#2ca02c")
-ggsave("resultados/var_interanual_reg_publico.png", p_int_pub, width = 11, height = 6, dpi = 150)
+ggsave("resultados/var_interanual_reg_publico.png", p_int_pub, width = 10, height = 7.5, dpi = 150)
 
 p_int_noreg <- make_interanual_plot("No Registrado", "#ff7f0e", "#ff7f0e")
-ggsave("resultados/var_interanual_no_registrado.png", p_int_noreg, width = 11, height = 6, dpi = 150)
+ggsave("resultados/var_interanual_no_registrado.png", p_int_noreg, width = 10, height = 7.5, dpi = 150)
 
 # 12d-int-nom. Variación interanual nominal (sin deflactar)
 interanual_nom <- eph_idx %>%
@@ -898,7 +906,7 @@ make_interanual_plot_nom <- function(cat, color_e = "#1f77b4", color_i = "#ff7f0
     labs(title    = paste("Variación Interanual Nominal —", cat),
          subtitle = "Mismo trimestre del año anterior. Var. % nominal (sin deflactar)",
          x = NULL, y = "Var. % interanual nominal", color = NULL, linetype = NULL,
-         caption = paste0("Fuentes: EPH-INDEC, Índice de Salarios (INDEC). ", fecha_actualizacion)) +
+         caption = nota_metodologica) +
     guides(linetype = guide_legend(override.aes = list(linewidth = 1.2))) +
     theme_minimal() + theme(legend.position = "bottom")
 
@@ -911,13 +919,13 @@ make_interanual_plot_nom <- function(cat, color_e = "#1f77b4", color_i = "#ff7f0
 }
 
 p_int_nom_priv <- make_interanual_plot_nom("Reg. Privado", "#1f77b4", "#1f77b4")
-ggsave("resultados/var_interanual_nominal_reg_privado.png", p_int_nom_priv, width = 11, height = 6, dpi = 150)
+ggsave("resultados/var_interanual_nominal_reg_privado.png", p_int_nom_priv, width = 10, height = 7.5, dpi = 150)
 
 p_int_nom_pub <- make_interanual_plot_nom("Reg. Público", "#2ca02c", "#2ca02c")
-ggsave("resultados/var_interanual_nominal_reg_publico.png", p_int_nom_pub, width = 11, height = 6, dpi = 150)
+ggsave("resultados/var_interanual_nominal_reg_publico.png", p_int_nom_pub, width = 10, height = 7.5, dpi = 150)
 
 p_int_nom_noreg <- make_interanual_plot_nom("No Registrado", "#ff7f0e", "#ff7f0e")
-ggsave("resultados/var_interanual_nominal_no_registrado.png", p_int_nom_noreg, width = 11, height = 6, dpi = 150)
+ggsave("resultados/var_interanual_nominal_no_registrado.png", p_int_nom_noreg, width = 10, height = 7.5, dpi = 150)
 
 # 12c. Corregido (SIPA/EPH móvil) — por sector
 df_corr <- eph_idx %>%
@@ -940,7 +948,7 @@ p_corr <- df_corr %>%
   labs(title    = "Índice Salarial Real por Hora — Corregido (SIPA/EPH)",
        subtitle = "EPH corregido por subdeclaración (Albina et al.). Base 100 = 2023 Q3",
        x = NULL, y = "Índice (base 100)", color = NULL,
-       caption = paste0("Fuentes: EPH-INDEC (corregida vía SIPA). ", fecha_actualizacion)) +
+       caption = nota_metodologica) +
   theme_minimal() + theme(legend.position = "bottom")
 
 for (s in names(pal_sectores5)) {
@@ -948,7 +956,7 @@ for (s in names(pal_sectores5)) {
   l <- d %>% filter(!is.na(indice)) %>% tail(1)
   if (nrow(l) > 0) p_corr <- p_corr + geom_label(data = l, aes(x = x + 0.1, y = indice, label = round(indice, 1)), color = pal_sectores5[s], fill = "white", linewidth = 0.5, fontface = "bold", size = 3, hjust = 0, vjust = -0.5)
 }
-ggsave("resultados/indice_salarial_hora_corregido.png", p_corr, width = 11, height = 6, dpi = 150)
+ggsave("resultados/indice_salarial_hora_corregido.png", p_corr, width = 10, height = 7.5, dpi = 150)
 
 # 12d. Factores de corrección
 p_fact <- factores %>%
@@ -964,7 +972,7 @@ p_fact <- factores %>%
        subtitle = "Evolución trimestral. Referencia: promedio 2022.",
        x = NULL, y = "Factor (ingreso real / declarado)", color = NULL) +
   theme_minimal() + theme(legend.position = "bottom")
-ggsave("resultados/factores_subdeclaracion.png", p_fact, width = 10, height = 5, dpi = 150)
+ggsave("resultados/factores_subdeclaracion.png", p_fact, width = 10, height = 7.5, dpi = 150)
 
 # 12e. Efecto corrección — comparación original vs corregido por sector
 p_efecto <- eph_idx %>%
@@ -990,7 +998,7 @@ p_efecto <- eph_idx %>%
        subtitle = "Original vs. corregido (SIPA/EPH móvil) por sector. Base 100 = 2023 Q3",
        x = NULL, y = "Índice (base 100)", color = NULL, linetype = NULL) +
   theme_minimal() + theme(legend.position = "bottom")
-ggsave("resultados/efecto_correccion.png", p_efecto, width = 11, height = 6, dpi = 150)
+ggsave("resultados/efecto_correccion.png", p_efecto, width = 10, height = 7.5, dpi = 150)
 
 # 12f. Pluriempleo por sector
 p_pluri <- eph_idx %>%
@@ -1012,7 +1020,7 @@ p_pluri <- eph_idx %>%
        subtitle = "Ocupados con más de un trabajo",
        x = NULL, y = "%", color = NULL) +
   theme_minimal() + theme(legend.position = "bottom")
-ggsave("resultados/pluriempleo.png", p_pluri, width = 10, height = 5, dpi = 150)
+ggsave("resultados/pluriempleo.png", p_pluri, width = 10, height = 7.5, dpi = 150)
 
 # 12g. Salario real por hora (nivel, $ constantes del último período)
 pal_nivel <- c("Privado Formal" = "#1f77b4", "Público Formal" = "#2ca02c", "Informal" = "#ff7f0e")
@@ -1038,14 +1046,14 @@ p_nivel <- df_nivel %>%
   labs(title    = "Salario Real por Hora — EPH",
        subtitle = paste0("En pesos constantes de ", ultimo_mes),
        x = NULL, y = "$/hora", color = NULL,
-       caption = paste0("Fuentes: EPH-INDEC, IPC. ", fecha_actualizacion)) +
+       caption = nota_metodologica) +
   theme_minimal() + theme(legend.position = "bottom")
 
 for (s in names(pal_nivel)) {
   l <- df_nivel %>% filter(sector == s, !is.na(salario)) %>% tail(1)
   if (nrow(l) > 0) p_nivel <- p_nivel + geom_label(data = l, aes(x = x + 0.1, y = salario, label = round(salario)), color = pal_nivel[s], fill = "white", linewidth = 0.5, fontface = "bold", size = 3, hjust = 0, vjust = -0.5)
 }
-ggsave("resultados/salario_real_hora.png", p_nivel, width = 11, height = 6, dpi = 150)
+ggsave("resultados/salario_real_hora.png", p_nivel, width = 10, height = 7.5, dpi = 150)
 
 # 12h. Horas semanales promedio por sector — ¿explica la brecha EPH vs INDEC?
 horas_plot_data <- eph %>%
@@ -1062,36 +1070,47 @@ horas_plot_data <- eph %>%
     sector_lab == "Público Formal" ~ "Reg. Público",
     sector_lab == "Informal"       ~ "No Registrado",
     sector_lab == "Cuenta Propia"  ~ "Cuenta Propia"
-  ))
+  )) %>%
+  filter(sector_lab != "Cuenta Propia") %>%
+  group_by(sector_lab) %>%
+  arrange(year, quarter) %>%
+  mutate(
+    horas_ppal_smooth   = (horas_ppal   + lag(horas_ppal, 1)   + lag(horas_ppal, 2))   / 3,
+    horas_total_smooth  = (horas_total  + lag(horas_total, 1)  + lag(horas_total, 2))  / 3
+  ) %>%
+  ungroup()
 
 pal_horas <- c("Reg. Privado" = "#1f77b4", "Reg. Público" = "#2ca02c",
-               "No Registrado" = "#ff7f0e", "Cuenta Propia" = "#d62728")
+               "No Registrado" = "#ff7f0e")
 
 horas_plot_data <- horas_plot_data %>% mutate(x = year + (quarter - 1) / 4)
 
-p_horas_ppal <- horas_plot_data %>%
-  ggplot(aes(x = x, y = horas_ppal, color = sector_lab)) +
-  geom_line(linewidth = 1) +
-  scale_color_manual(values = pal_horas) +
-  scale_y_continuous(labels = comma_format(), expand = expansion(mult = c(y_expand_bottom, 0.05))) +
-  gob_annotations +
-  labs(title    = "Horas Semanales — Solo Empleo Principal",
-       subtitle = "Excluye horas de ocupaciones secundarias (pluriempleo)",
-       x = NULL, y = "Horas / semana", color = NULL) +
-  theme_minimal() + theme(legend.position = "bottom")
-ggsave("resultados/horas_semanales_ppal.png", p_horas_ppal, width = 10, height = 5, dpi = 150)
+make_plot_horas <- function(y_col, smooth_col, title, subtitle, filename) {
+  horas_plot_data %>%
+    ggplot(aes(x = x, color = sector_lab)) +
+    geom_line(aes(y = .data[[y_col]]), linewidth = 0.4, alpha = 0.3) +
+    geom_line(aes(y = .data[[smooth_col]]), linewidth = 1) +
+    scale_color_manual(values = pal_horas) +
+    coord_cartesian(ylim = c(20, NA)) +
+    scale_y_continuous(labels = comma_format(), expand = c(0, 0)) +
+    make_gob(25) +
+    labs(title = title, subtitle = subtitle,
+         x = NULL, y = "Horas / semana", color = NULL,
+         caption = nota_metodologica) +
+    theme_minimal() + theme(legend.position = "bottom")
+}
 
-p_horas_total <- horas_plot_data %>%
-  ggplot(aes(x = x, y = horas_total, color = sector_lab)) +
-  geom_line(linewidth = 1) +
-  scale_color_manual(values = pal_horas) +
-  scale_y_continuous(labels = comma_format(), expand = expansion(mult = c(y_expand_bottom, 0.05))) +
-  gob_annotations +
-  labs(title    = "Horas Semanales — Total (todas las ocupaciones)",
-       subtitle = "Incluye horas de empleos secundarios (pluriempleo)",
-       x = NULL, y = "Horas / semana", color = NULL) +
-  theme_minimal() + theme(legend.position = "bottom")
-ggsave("resultados/horas_semanales_total.png", p_horas_total, width = 10, height = 5, dpi = 150)
+p_horas_ppal <- make_plot_horas("horas_ppal", "horas_ppal_smooth",
+  "Horas Semanales — Solo Empleo Principal",
+  "Línea sólida = media móvil 3 trim. Línea tenue = dato original. Excluye horas de pluriempleo.",
+  "resultados/horas_semanales_ppal.png")
+ggsave("resultados/horas_semanales_ppal.png", p_horas_ppal, width = 10, height = 7.5, dpi = 150)
+
+p_horas_total <- make_plot_horas("horas_total", "horas_total_smooth",
+  "Horas Semanales Trabajadas - Total (todas las ocupaciones)",
+  "Línea sólida = media móvil 3 trim. Línea tenue = dato original. Incluye pluriempleo.",
+  "resultados/horas_semanales_total.png")
+ggsave("resultados/horas_semanales_total.png", p_horas_total, width = 10, height = 7.5, dpi = 150)
 
 # 12i. Horas en empleo no principal (promedio entre todos los ocupados)
 horas_sec <- eph %>%
@@ -1107,20 +1126,139 @@ horas_sec <- eph %>%
     sector_lab == "Público Formal" ~ "Reg. Público",
     sector_lab == "Informal"       ~ "No Registrado",
     sector_lab == "Cuenta Propia"  ~ "Cuenta Propia"
-  ),
-  x = year + (quarter - 1) / 4)
+  )) %>%
+  filter(sector_lab != "Cuenta Propia") %>%
+  group_by(sector_lab) %>%
+  arrange(year, quarter) %>%
+  mutate(horas_sec_smooth = (horas_sec_prom + lag(horas_sec_prom, 1) + lag(horas_sec_prom, 2)) / 3) %>%
+  ungroup() %>%
+  mutate(x = year + (quarter - 1) / 4)
 
 p_horas_sec <- horas_sec %>%
-  ggplot(aes(x = x, y = horas_sec_prom, color = sector_lab)) +
-  geom_line(linewidth = 1) +
+  ggplot(aes(x = x, color = sector_lab)) +
+  geom_line(aes(y = horas_sec_prom), linewidth = 0.4, alpha = 0.3) +
+  geom_line(aes(y = horas_sec_smooth), linewidth = 1) +
   scale_color_manual(values = pal_horas) +
-  scale_y_continuous(labels = comma_format(), expand = expansion(mult = c(y_expand_bottom, 0.05))) +
-  gob_annotations +
+  coord_cartesian(ylim = c(0, NA)) +
+  scale_y_continuous(labels = comma_format(), expand = c(0, 0)) +
+  make_gob(-0.5) +
   labs(title    = "Horas en Empleo No Principal (promedio general)",
-       subtitle = "Horas semanales en ocupaciones secundarias. Incluye ceros de quienes no tienen segundo empleo.",
-       x = NULL, y = "Horas / semana", color = NULL) +
+       subtitle = "Línea sólida = media móvil 3 trim. Línea tenue = dato original. Incluye ceros de quienes no tienen segundo empleo.",
+       x = NULL, y = "Horas / semana", color = NULL,
+       caption = nota_metodologica) +
   theme_minimal() + theme(legend.position = "bottom")
-ggsave("resultados/horas_secundarias.png", p_horas_sec, width = 10, height = 5, dpi = 150)
+ggsave("resultados/horas_secundarias.png", p_horas_sec, width = 10, height = 7.5, dpi = 150)
+
+# 12j. Horas totales agregadas (media ponderada + mediana)
+horas_total_agg <- eph %>%
+  filter(year <= last_year) %>%
+  group_by(year, quarter) %>%
+  summarise(
+    horas_media = weighted.mean(horas_sem, w = PONDERA, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(year, quarter) %>%
+  mutate(
+    horas_smooth = (horas_media + lag(horas_media, 1) + lag(horas_media, 2)) / 3,
+    x = year + (quarter - 1) / 4
+  )
+
+p_horas_total_agg <- horas_total_agg %>%
+  ggplot(aes(x = x)) +
+  geom_hline(yintercept = 40, linewidth = 0.5, linetype = "dotted", color = "gray50") +
+  geom_line(aes(y = horas_media), linewidth = 0.4, alpha = 0.3, color = "#1f77b4") +
+  geom_line(aes(y = horas_smooth), linewidth = 1, color = "#1f77b4") +
+  coord_cartesian(ylim = c(30, 50)) +
+  scale_y_continuous(breaks = seq(30, 50, by = 5), labels = comma_format(), expand = c(0, 0)) +
+  make_gob(35) +
+  labs(title    = "Horas Semanales Trabajadas - Total General",
+       subtitle = "Media ponderada. Línea sólida = media móvil 3 trim. Línea punteada = mediana (=40).",
+       x = NULL, y = "Horas / semana", color = NULL,
+       caption = nota_metodologica) +
+  theme_minimal()
+ggsave("resultados/horas_semanales_total_agg.png", p_horas_total_agg, width = 10, height = 7.5, dpi = 150)
+
+cat("\n--- Horas totales semanales (media ponderada) ---\n")
+print(as.data.frame(horas_total_agg[, c("year", "quarter", "horas_media")]) |>
+  transform(horas_media = round(horas_media, 1)), row.names = FALSE)
+
+# 12k. Horas totales de pluriempleados
+horas_pluri <- eph %>%
+  filter(year <= last_year, pluriempleo) %>%
+  group_by(year, quarter) %>%
+  summarise(
+    horas = weighted.mean(horas_sem, w = PONDERA, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(x = year + (quarter - 1) / 4) %>%
+  arrange(year, quarter) %>%
+  mutate(horas_smooth = (horas + lag(horas, 1) + lag(horas, 2)) / 3)
+
+p_horas_pluri <- horas_pluri %>%
+  ggplot(aes(x = x)) +
+  geom_line(aes(y = horas), linewidth = 0.4, alpha = 0.3, color = "#d62728") +
+  geom_line(aes(y = horas_smooth), linewidth = 1, color = "#d62728") +
+  coord_cartesian(ylim = c(32.5, 65)) +
+  scale_y_continuous(breaks = seq(32.5, 65, by = 5), labels = comma_format(), expand = c(0, 0)) +
+  make_gob(35) +
+  labs(title    = "Horas Semanales Trabajadas - Pluriempleados",
+       subtitle = "Media ponderada. Línea sólida = media móvil 3 trim.",
+       x = NULL, y = "Horas / semana",
+       caption = nota_metodologica) +
+  theme_minimal()
+ggsave("resultados/horas_semanales_pluriempleo.png", p_horas_pluri, width = 10, height = 7.5, dpi = 150)
+
+# 12l. Tasa de pluriempleo general (media móvil 3 trim)
+tasa_pluri <- eph %>%
+  filter(year <= last_year) %>%
+  group_by(year, quarter) %>%
+  summarise(
+    tasa = weighted.mean(pluriempleo, w = PONDERA, na.rm = TRUE) * 100,
+    .groups = "drop"
+  ) %>%
+  mutate(x = year + (quarter - 1) / 4) %>%
+  arrange(year, quarter) %>%
+  mutate(tasa_smooth = (tasa + lag(tasa, 1) + lag(tasa, 2)) / 3)
+
+p_tasa_pluri <- tasa_pluri %>%
+  ggplot(aes(x = x)) +
+  geom_line(aes(y = tasa), linewidth = 0.4, alpha = 0.3, color = "#1f77b4") +
+  geom_line(aes(y = tasa_smooth), linewidth = 1, color = "#1f77b4") +
+  coord_cartesian(ylim = c(0, 20)) +
+  scale_y_continuous(breaks = seq(0, 20, by = 5), labels = comma_format(), expand = c(0, 0)) +
+  make_gob(1) +
+  labs(title    = "Tasa de Pluriempleo General",
+       subtitle = "% de ocupados con más de un trabajo. Media móvil 3 trim.",
+       x = NULL, y = "%",
+       caption = nota_metodologica) +
+  theme_minimal()
+ggsave("resultados/tasa_pluriempleo_general.png", p_tasa_pluri, width = 10, height = 7.5, dpi = 150)
+
+# 12m. Tasa de pluriempleo solo registrados (asalariados formales)
+tasa_pluri_reg <- eph %>%
+  filter(year <= last_year, CAT_OCUP == 3, formal == TRUE) %>%
+  group_by(year, quarter) %>%
+  summarise(
+    tasa = weighted.mean(pluriempleo, w = PONDERA, na.rm = TRUE) * 100,
+    .groups = "drop"
+  ) %>%
+  mutate(x = year + (quarter - 1) / 4) %>%
+  arrange(year, quarter) %>%
+  mutate(tasa_smooth = (tasa + lag(tasa, 1) + lag(tasa, 2)) / 3)
+
+p_tasa_pluri_reg <- tasa_pluri_reg %>%
+  ggplot(aes(x = x)) +
+  geom_line(aes(y = tasa), linewidth = 0.4, alpha = 0.3, color = "#2ca02c") +
+  geom_line(aes(y = tasa_smooth), linewidth = 1, color = "#2ca02c") +
+  coord_cartesian(ylim = c(0, 20)) +
+  scale_y_continuous(breaks = seq(0, 20, by = 5), labels = comma_format(), expand = c(0, 0)) +
+  make_gob(1) +
+  labs(title    = "Tasa de Pluriempleo - Registrados",
+       subtitle = "% de asalariados registrados con más de un trabajo. Media móvil 3 trim.",
+       x = NULL, y = "%",
+       caption = nota_metodologica) +
+  theme_minimal()
+ggsave("resultados/tasa_pluriempleo_registrados.png", p_tasa_pluri_reg, width = 10, height = 7.5, dpi = 150)
 
 # ---- 13. Resumen ----
 cat("\n=== RESUMEN ===\n")
